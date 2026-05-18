@@ -25,17 +25,33 @@ jobs:
           tar -xzf apache-jmeter-5.6.3.tgz
           mv apache-jmeter-5.6.3 jmeter
 
-      - name: Run Performance Tests
-        run: |
-          mkdir -p results
-          jmeter/bin/jmeter -n \
-            -t tests/load_test.jmx \
-            -l results/results.jtl \
-            -e -o reports
+      - name: Create results folder
+        run: mkdir results
 
-      - name: Upload HTML Report as Artifact
+      - name: Run JMeter Test
+        run: |
+          rm -rf reports
+
+          jmeter/bin/jmeter -n \
+          -t tests/load_test.jmx \
+          -l results/results.jtl \
+          -e \
+          -o reports \
+          -j jmeter.log
+
+      - name: Show generated files
+        run: |
+          echo "===== REPORTS ====="
+          ls -la reports || true
+
+          echo "===== RESULTS ====="
+          ls -la results || true
+
+          echo "===== JMETER LOG ====="
+          cat jmeter.log || true
+
+      - name: Upload HTML Report
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: jmeter-report
           path: reports
